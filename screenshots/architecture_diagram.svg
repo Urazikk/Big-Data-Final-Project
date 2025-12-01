@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 350">
+  <!-- Définitions (Flèches) -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#333" />
+    </marker>
+  </defs>
+
+  <!-- Fond blanc global -->
+  <rect width="100%" height="100%" fill="white"/>
+
+  <!-- === COUCHES (LAYERS) === -->
+  
+  <!-- Source Layer -->
+  <rect x="50" y="50" width="180" height="250" fill="#e3f2fd" stroke="#1565c0" stroke-width="1" rx="10" />
+  <text x="140" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#1565c0" font-weight="bold">Source Layer</text>
+
+  <!-- Ingestion Layer -->
+  <rect x="250" y="50" width="180" height="250" fill="#f5f5f5" stroke="#616161" stroke-width="1" rx="10" />
+  <text x="340" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#616161" font-weight="bold">Ingestion Layer</text>
+
+  <!-- Processing Layer -->
+  <rect x="450" y="50" width="180" height="250" fill="#fff8e1" stroke="#ff8f00" stroke-width="1" rx="10" />
+  <text x="540" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#ff8f00" font-weight="bold">Processing Layer</text>
+
+  <!-- Serving Layer -->
+  <rect x="650" y="50" width="200" height="250" fill="#f3e5f5" stroke="#7b1fa2" stroke-width="1" rx="10" />
+  <text x="750" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#7b1fa2" font-weight="bold">Serving Layer</text>
+
+  <!-- === COMPOSANTS (NODES) === -->
+
+  <!-- Python Simulator (Boîte) -->
+  <rect x="80" y="150" width="120" height="60" rx="5" fill="white" stroke="#1565c0" stroke-width="2"/>
+  <text x="140" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Python Match</text>
+  <text x="140" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Simulator</text>
+  <text x="140" y="140" text-anchor="middle" font-size="20">🏟️</text>
+
+  <!-- Kafka (Cercle) -->
+  <circle cx="340" cy="180" r="40" fill="#212121" stroke="white" stroke-width="2"/>
+  <text x="340" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="white" font-weight="bold">Kafka</text>
+
+  <!-- Spark (Hexagone/Polygone) -->
+  <polygon points="480,150 600,150 620,180 600,210 480,210 460,180" fill="white" stroke="#ff8f00" stroke-width="2"/>
+  <text x="540" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Spark Structured</text>
+  <text x="540" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Streaming</text>
+  <text x="540" y="140" text-anchor="middle" font-size="20">⚡</text>
+
+  <!-- Dashboard (Note) -->
+  <rect x="680" y="120" width="140" height="50" rx="5" fill="white" stroke="#7b1fa2" stroke-width="2"/>
+  <text x="750" y="150" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Live Dashboard</text>
+  <text x="695" y="140" text-anchor="middle" font-size="16">📊</text>
+
+  <!-- Data Lake (Cylindre - simulé avec path) -->
+  <path d="M680,220 Q680,210 750,210 Q820,210 820,220 L820,260 Q820,270 750,270 Q680,270 680,260 Z" fill="white" stroke="#2e7d32" stroke-width="2"/>
+  <path d="M680,220 Q680,230 750,230 Q820,230 820,220" fill="none" stroke="#2e7d32" stroke-width="2"/>
+  <text x="750" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="12">Parquet Data Lake</text>
+  <text x="750" y="290" text-anchor="middle" font-size="16">🗄️</text>
+
+  <!-- === LIENS (ARROWS) === -->
+
+  <!-- Python -> Kafka -->
+  <line x1="200" y1="180" x2="290" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="245" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">JSON Events</text>
+
+  <!-- Kafka -> Spark -->
+  <line x1="380" y1="180" x2="450" y2="180" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="415" y="170" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">Topic</text>
+
+  <!-- Spark -> Dashboard -->
+  <path d="M610,180 Q640,180 640,145 L670,145" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="635" y="160" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">Micro-Batch</text>
+
+  <!-- Spark -> Data Lake -->
+  <path d="M610,180 Q640,180 640,240 L670,240" fill="none" stroke="#333" stroke-width="2" marker-end="url(#arrowhead)"/>
+  <text x="635" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#555">Archival</text>
+
+</svg>

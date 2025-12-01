@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# --- Environnement Virtuel (Le plus important) ---
+# On ignore le dossier venv pour ne pas envoyer les librairies sur GitHub
+venv/
+env/
+.venv/
+
+# --- Données Big Data (Data Lake) ---
+# On ne commit jamais les données brutes ou les checkpoints Spark
+data/
+*.parquet
+checkpoint*/
+
+# --- Fichiers Système & IDE ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- Logs ---
+*.log
