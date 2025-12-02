@@ -27,14 +27,21 @@ Storage (Output): Raw data is simultaneously archived to local storage in Parque
 The repository is organized to separate infrastructure, production, and processing logic:
 
 sports-analytics-pipeline/
-├── docker-compose.yml        # Kafka & Zookeeper Infrastructure
-├── producer/
-│   ├── match_generator.py    # The Python Simulator (Source/Input)
-│   └── requirements.txt      # Dependencies (kafka-python, etc.)
-├── spark-processor/
-│   ├── stream_analytics.py   # Spark Structured Streaming Job
-│   └── requirements.txt      # Dependencies (pyspark)
-└── data/                     # Generated Data Lake (Sample Output Data)
+├── README.md                 # Project documentation
+├── docker-compose.yml        # Infrastructure (Kafka & Zookeeper)
+├── .gitignore                # Ignore rules (venv, data, etc.)
+├── screenshots/              # Execution proofs
+│   └── architecture.svg
+├── producer/                 # Data Ingestion Component
+│   ├── match_generator.py    # Source Code
+│   └── requirements.txt      # Python dependencies
+├── spark-processor/          # Data Processing Component
+│   ├── stream_analytics.py   # PySpark Job
+│   └── requirements.txt      # Spark dependencies
+└── data/                     # Local Data Lake (Parquet files)
+
+
+
 
 
 #### 🚀 Installation & Usage
