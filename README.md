@@ -1,14 +1,14 @@
-# ⚽ Real-Time Sports Analytics Pipeline
+## ⚽ Real-Time Sports Analytics Pipeline
 
-##### Description: 
+#### Description: 
 
 A Big Data pipeline simulating a live sports multiplex. It ingests thousands of match events (goals, shots, passes) in real-time using Kafka, processes them with Spark Structured Streaming to calculate advanced metrics (Expected Goals, Possession %), and archives raw data for historical analysis.
 
-##### Chosen Tools: 
+#### Chosen Tools: 
 - Apache Kafka (Ingestion) 
 - Spark Structured Streaming (Processing).
 
-##### 🏗️ Architecture & Minimal Working Example
+#### 🏗️ Architecture & Minimal Working Example
 
 This project implements a Minimal Working Example of a Kafka Producer-Consumer pipeline following the Kappa Architecture:
 
@@ -22,7 +22,7 @@ Processing: Spark computes live statistics (Scoreboard, xG, Possession) using mi
 
 Storage (Output): Raw data is simultaneously archived to local storage in Parquet format (Bronze Layer).
 
-##### 🛠️ Folder Structure
+#### 🛠️ Folder Structure
 
 The repository is organized to separate infrastructure, production, and processing logic:
 
@@ -37,9 +37,9 @@ sports-analytics-pipeline/
 └── data/                     # Generated Data Lake (Sample Output Data)
 
 
-##### 🚀 Installation & Usage
+#### 🚀 Installation & Usage
 
-1. Prerequisites
+**1. Prerequisites**
 
 Docker & Docker Compose
 
@@ -47,24 +47,24 @@ Python 3.9+
 
 Java 11 or 17 (Required for Spark)
 
-2. Start Infrastructure
+**2. Start Infrastructure**
 
 Launch the Kafka cluster using Docker from the root directory:
 
-docker-compose up -d
+```docker-compose up -d```
 
 
-Verify that containers are running with docker ps.
+Verify that containers are running with ```docker ps```.
 
-3. Setup Python Environment (Run once)
+**3. Setup Python Environment (Run once)**
 
 It is recommended to use a virtual environment to manage dependencies for both the producer and the processor.
 
-####  1. Create virtual environment at the root
+*3.1. Create virtual environment at the root*
 
 ```python -m venv venv```
 
-####  2. Activate the environment
+*3.2. Activate the environment*
 
 On Mac/Linux:
 
@@ -74,13 +74,13 @@ On Windows:
 
 ```.\venv\Scripts\Activate```
 
-#### 3. Install ALL dependencies from requirements files
+*3.3. Install ALL dependencies from requirements files*
 
 ```pip install -r producer/requirements.txt```
 ```pip install -r spark-processor/requirements.txt```
 
 
-#### 4. Run the Pipeline
+*3.4. Run the Pipeline*
 
 **Terminal 1: Start the Match Generator (Producer)**
 
@@ -106,50 +106,52 @@ Submit the Spark job (Kafka package is handled automatically)
 
 ```spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0 stream_analytics.py```
 
+#### 📸 Execution Proofs
 
+**1. Producer Output (Logs)**
 
-📸 Execution Proofs
+The producer simulates a realistic match flow, handling yellow cards and calculating xG (Expected Goals) on the fly.
 
-1. Producer Output (Logs)
+![Execution Proofs n1](screenshots/ex1.png) 
 
-The producer simulates a realistic match flow, handling red cards and calculating xG (Expected Goals) on the fly.
-
-2. Live Dashboard (Spark Output)
+**2. Live Dashboard (Spark Output)**
 
 Spark aggregates data every 10 seconds to display the live scoreboard, possession percentage, and xG totals.
 
-🧠 Why These Tools?
+![Execution Proofs n2](screenshots/ex2.png) 
 
-Why Apache Kafka?
+#### 🧠 Why These Tools?
+
+**Why Apache Kafka?**
 
 We selected Kafka for the ingestion layer because of its decoupling capabilities. In a real stadium context, sensors generates millions of events. Kafka ensures that if the analytics engine crashes, no match data is lost (Durability). It buffers the high-velocity data before processing.
 
-Why Spark Structured Streaming?
+**Why Spark Structured Streaming?**
 
 Spark was chosen for its ability to handle stateful aggregations (counting goals over a window of time) and its unified API for both Batch and Streaming. We use it to compute complex metrics like "Possession %" which requires aggregating passes from both teams in a single match window.
 
-📝 My Setup Notes (Challenges & Solutions)
+**📝 My Setup Notes**
 
-During the development, I encountered several specific Big Data challenges and documented my problem-solving process:
+During the development, we encountered several specific Big Data challenges and documented my problem-solving process:
 
-🔴 Challenge 1: Docker Networking
+**🔴 Challenge 1: Docker Networking**
 
-Issue: My local Python script couldn't connect to Kafka inside Docker (NoBrokersAvailable).
+*Issue:* Our local Python script couldn't connect to Kafka inside Docker (NoBrokersAvailable).
 
-Root Cause: Kafka inside Docker didn't know how to advertise itself to the host machine (localhost).
+*Root Cause:* Kafka inside Docker didn't know how to advertise itself to the host machine (localhost).
 
-Solution: I learned about Kafka Listeners. I configured KAFKA_ADVERTISED_LISTENERS in docker-compose.yml to expose PLAINTEXT://localhost:9092 to my host machine while keeping an internal listener for Docker inter-communication.
+*Solution:* We learned about Kafka Listeners. We configured KAFKA_ADVERTISED_LISTENERS in docker-compose.yml to expose PLAINTEXT://localhost:9092 to my host machine while keeping an internal listener for Docker inter-communication.
 
-🔴 Challenge 2: Scala Version Mismatch
+**🔴 Challenge 2: Scala Version Mismatch**
 
-Issue: Spark crashed with a java.lang.NoSuchMethodError related to wrapRefArray.
+*Issue:* Spark crashed with a java.lang.NoSuchMethodError related to wrapRefArray.
 
-Root Cause: My local PySpark installation ran on Scala 2.13, but I was initially trying to load the spark-sql-kafka package compiled for Scala 2.12.
+*Root Cause:* My local PySpark installation ran on Scala 2.13, but I was initially trying to load the spark-sql-kafka package compiled for Scala 2.12.
 
-Solution: I analyzed the stack trace and updated the submit command to use the correct Maven coordinate: org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0.
+*Solution:* I analyzed the stack trace and updated the submit command to use the correct Maven coordinate: org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0.
 
 
-🌍 Fit into Big Data Ecosystem
+#### 🌍 Fit into Big Data Ecosystem
 
 This project demonstrates a standard Real-Time ETL Pipeline:
 

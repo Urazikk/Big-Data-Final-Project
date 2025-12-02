@@ -87,18 +87,16 @@ TEAMS_STRUCTURED = {
 POSSESSION_WEIGHTS = {"GK": 5, "DEF": 30, "MID": 45, "FWD": 20}
 ACTION_TYPES = ["PASS", "SHOT", "FOUL", "CORNER", "GOAL", "CARD_YELLOW"]
 
-# Rééquilibrage : Division des probas de BUT par 2.5 ET des TIRS par 2
+
 ACTION_WEIGHTS_BY_POS = {
     # Gardien
     "GK":  [99,  0,   0.5, 0,    0,    0.1], 
-    
-    # Défenseur : Tir divisé par 2 (1.5 -> 0.75), But divisé par 2.5 (0.02)
+        
     "DEF": [94,  0.75, 3,   0.5,  0.02, 0.4], 
     
-    # Milieu : Tir divisé par 2 (6 -> 3), But divisé par 2.5 (0.2)
+
     "MID": [88,  3,   4,   1,    0.2,  0.3], 
     
-    # Attaquant : Tir divisé par 2 (20 -> 10), But divisé par 2.5 (2.4)
     "FWD": [70,  10,  3,   2,    2.4,  0.2] 
 }
 
@@ -115,7 +113,7 @@ def calculate_xg(event_type, role, x_pos):
     return 0.0
 
 # --- 6. STATS TRACKING ---
-# On ajoute le suivi des cartons jaunes pour la règle du Rouge
+
 match_stats_tracker = {m['id']: {'players': {}, 'banned': []} for m in ACTIVE_MATCHES}
 
 def update_stats(match_id, player, event_type, x_pos):
@@ -181,7 +179,7 @@ try:
         
         # LOGIQUE CARTON ROUGE AUTOMATIQUE (2 Jaunes = Rouge)
         if event_type == 'CARD_YELLOW':
-            # On vérifie si le joueur a déjà un jaune
+         
             current_yellows = 0
             if player_name in match_stats_tracker[match_id]['players']:
                 current_yellows = match_stats_tracker[match_id]['players'][player_name]['yellow_cards']
@@ -189,7 +187,7 @@ try:
             if current_yellows >= 1:
                 event_type = 'CARD_RED'
                 match_stats_tracker[match_id]['banned'].append(player_name)
-                # On ne compte pas le 2ème jaune dans les stats, mais l'expulsion directe ici pour simplifier
+                
 
         x_coord = round(random.uniform(50, 98) if event_type in ['SHOT', 'GOAL'] else random.uniform(0, 100), 1)
         xg_value = calculate_xg(event_type, selected_pos, x_coord)
