@@ -1,14 +1,18 @@
 import sys
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, col, count, when, sum, round, lit, abs
-from pyspark.sql.types import StructType, StringType, IntegerType, FloatType
+from pyspark.sql.functions import from_json, col, count, when, sum, round, window, desc, lit
+from pyspark.sql.types import StructType, StringType, IntegerType, FloatType, TimestampType
 
 # 1. Initialisation
 print("⏳ Initialisation de Spark...")
+
+# Configuration Spark avec option pour Windows (LocalFileSystem)
+# L'option spark.hadoop.fs.file.impl est critique pour éviter l'erreur UnsatisfiedLinkError sur Windows
 spark = SparkSession.builder \
     .appName("SportsAnalyticsEngine") \
     .config("spark.jars.packages", "org.apache.spark:spark-sql-kafka-0-10_2.13:3.5.0") \
     .config("spark.sql.shuffle.partitions", "4") \
+    .config("spark.hadoop.fs.file.impl", "org.apache.hadoop.fs.LocalFileSystem") \
     .getOrCreate()
 
 spark.sparkContext.setLogLevel("WARN")
@@ -19,9 +23,11 @@ schema = StructType() \
     .add("league", StringType()) \
     .add("home_team", StringType()) \
     .add("away_team", StringType()) \
+    .add("timestamp", IntegerType()) \
     .add("game_time", IntegerType()) \
     .add("event_type", StringType()) \
     .add("team", StringType()) \
+    .add("player", StringType()) \
     .add("xg", FloatType()) \
     .add("position_role", StringType())
 
@@ -38,60 +44,74 @@ except Exception as e:
     sys.exit(1)
 
 # 4. Transformation
+# On cast le timestamp integer en vrai TimestampType pour les fenêtres
 game_data = raw_stream.select(
     from_json(col("value").cast("string"), schema).alias("data")
-).select("data.*")
+).select("data.*") \
+ .withColumn("event_time", col("timestamp").cast(TimestampType()))
 
-# --- AJOUT BIG DATA : ARCHIVAGE (DATA LAKE) ---
-query_archival = game_data.writeStream \
-    .outputMode("append") \
-    .format("parquet") \
-    .option("path", "data/raw_events") \
-    .option("checkpointLocation", "data/checkpoints/raw_events") \
-    .trigger(processingTime='1 minute') \
-    .start()
+# --- CALCUL DU SCORE & MVP ---
 
-# 5. Calculs "Tableau d'Affichage"
+# A. Score et Stats de base (Global)
 match_summary = game_data.groupBy("match_id", "league", "home_team", "away_team") \
     .agg(
         sum(when((col("event_type") == "GOAL") & (col("team") == col("home_team")), 1).otherwise(0)).alias("Score_Home"),
         sum(when((col("event_type") == "GOAL") & (col("team") == col("away_team")), 1).otherwise(0)).alias("Score_Away"),
-        sum(when((col("event_type") == "PASS") & (col("team") == col("home_team")), 1).otherwise(0)).alias("Passes_Home"),
-        sum(when((col("event_type") == "PASS") & (col("team") == col("away_team")), 1).otherwise(0)).alias("Passes_Away"),
         round(sum(when(col("team") == col("home_team"), col("xg")).otherwise(0)), 2).alias("xG_Home"),
         round(sum(when(col("team") == col("away_team"), col("xg")).otherwise(0)), 2).alias("xG_Away")
     )
 
-# 6. Enrichissement Final (Possession) - SANS TENSION
-final_scoreboard = match_summary.withColumn("Total_Passes", col("Passes_Home") + col("Passes_Away")) \
-    .withColumn("Poss_Home", 
-                when(col("Total_Passes") > 0, round((col("Passes_Home") / col("Total_Passes")) * 100, 1))
-                .otherwise(50.0)) \
-    .select(
-        col("league"),
-        col("home_team").alias("Domicile"),
-        col("Score_Home").alias("Buts_D"),
-        col("Score_Away").alias("Buts_E"),
-        col("away_team").alias("Exterieur"),
-        col("Poss_Home").alias("Poss%"),
-        col("xG_Home"),
-        col("xG_Away")
-    ).orderBy("league")
+# C. MVP en temps réel (Le joueur le plus actif/dangereux)
+mvp_df = game_data \
+    .groupBy("match_id", "player", "team") \
+    .agg(
+        (sum(when(col("event_type") == "GOAL", 50)
+             .when(col("event_type") == "SHOT", 10)
+             .when(col("event_type") == "PASS", 2)
+             .otherwise(1))).alias("player_impact")
+    ) \
+    .orderBy(desc("player_impact")) \
+    .limit(5) # Top 5 joueurs tout match confondu
+
+# 5. Assemblage final (Jointures simplifiées pour affichage console)
+
+final_board = match_summary.select(
+    col("league"),
+    col("home_team").alias("Home"),
+    col("Score_Home").alias("Goals_Home"),
+    col("Score_Away").alias("Goals_Away"),
+    col("away_team").alias("Away"),
+    col("xG_Home"),
+    col("xG_Away")
+).orderBy("league")
 
 # 7. Affichage
-print(">>> ✅ Analytics V5 : Dashboard (Simplifié)")
-print(">>> En attente de données...")
+print(">>> ✅ Analytics V9 : Dashboard (English)")
+print(">>> Waiting for data stream...")
 
-query_console = final_scoreboard.writeStream \
+# Vue 1 : Scores (Mise à jour toutes les 10 secondes)
+query_console = final_board.writeStream \
     .outputMode("complete") \
     .format("console") \
     .option("truncate", "false") \
     .trigger(processingTime='10 seconds') \
     .start()
 
+# Vue 2 : Top Players (MVP Race) (Mise à jour toutes les 20 secondes)
+query_mvp = mvp_df.select(
+    col("player").alias("Player"),
+    col("team").alias("Team"),
+    col("impact_score").alias("Impact_Score")
+).writeStream \
+    .outputMode("complete") \
+    .format("console") \
+    .option("truncate", "false") \
+    .trigger(processingTime='20 seconds') \
+    .start()
+
 try:
     spark.streams.awaitAnyTermination()
 except KeyboardInterrupt:
-    print("\n🛑 Arrêt Spark.")
+    print("\n🛑 Stopping Spark.")
     query_console.stop()
-    query_archival.stop()
+    query_mvp.stop()

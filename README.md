@@ -42,7 +42,25 @@ Python 3.9+
 
 Java 11 or 17 (Required for Spark)
 
-**2. Start Infrastructure**
+**2. Windows-Specific Configuration (Hadoop)**
+
+On Windows, Spark requires the Hadoop utility ```winutils.exe``` and its associated DLLs to manage local file operations.
+
+**Step 1 :** Create a root folder for Hadoop, e.g., ```C:\hadoop\```
+
+**Step 2 :** Inside, create a subfolder named bin: ```C:\hadoop\bin\```
+
+**Step 3 :** Download the version of winutils.exe and hadoop.dll corresponding to the Hadoop version used by Spark (here, Hadoop 3.3.x). Place these files inside C:\hadoop\bin.
+
+
+
+**Step 4 :** Set the environment variables (execute these in your PowerShell session):
+
+```$env:HADOOP_HOME="C:\hadoop"```
+&
+```$env:Path="$env:HADOOP_HOME\bin;$env:Path"``` 
+
+**3. Start Infrastructure**
 
 Launch the Kafka cluster using Docker from the root directory:
 
@@ -51,15 +69,15 @@ Launch the Kafka cluster using Docker from the root directory:
 
 Verify that containers are running with ```docker ps```.
 
-**3. Setup Python Environment (Run once)**
+**4. Setup Python Environment (Run once)**
 
 It is recommended to use a virtual environment to manage dependencies for both the producer and the processor.
 
-*3.1. Create virtual environment at the root*
+*4.1. Create virtual environment at the root*
 
 ```python -m venv venv```
 
-*3.2. Activate the environment*
+*4.2. Activate the environment*
 
 On Mac/Linux:
 
@@ -69,21 +87,28 @@ On Windows:
 
 ```.\venv\Scripts\Activate```
 
-*3.3. Install ALL dependencies from requirements files*
+*4.3. Install ALL dependencies from requirements files*
 
 ```pip install -r producer/requirements.txt```
 ```pip install -r spark-processor/requirements.txt```
 
 
-*3.4. Run the Pipeline*
+*4.4. Run the Pipeline*
 
 **Terminal 1: Start the Match Generator (Producer)**
 
 Ensure venv is activated
 
-```source venv/bin/activate``` or ```.\venv\Scripts\Activate```
+On Mac/Linux:
+```source venv/bin/activate``` 
 
+On Windows:
+ ```.\venv\Scripts\Activate```
+
+Run:
 ```cd producer```
+
+Finally run:
 ```python match_generator.py```
 
 
@@ -93,8 +118,13 @@ Ensure venv is activated
 
 Ensure venv is activated
 
-```source venv/bin/activate``` or ```.\venv\Scripts\Activate```
+On Mac/Linux:
+```source venv/bin/activate``` 
 
+On Windows:
+ ```.\venv\Scripts\Activate```
+
+Run:
 ```cd spark-processor```
 
 Submit the Spark job (Kafka package is handled automatically)
@@ -114,6 +144,13 @@ The producer simulates a realistic match flow, handling yellow cards and calcula
 Spark aggregates data every 10 seconds to display the live scoreboard, possession percentage, and xG totals.
 
 ![Execution Proofs n2](screenshots/ex2.png) 
+
+**3. Our pipeline in live**
+
+This image shows the entire pipeline running in two terminals simultaneously, demonstrating the data flow from the producer (match events) to the consumer (live dashboard).
+
+![Execution Proofs n3](screenshots/ex3.png) 
+
 
 #### 🧠 Why These Tools?
 
