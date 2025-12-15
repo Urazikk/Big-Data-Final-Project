@@ -101,7 +101,7 @@ query_console = final_board.writeStream \
 query_mvp = mvp_df.select(
     col("player").alias("Player"),
     col("team").alias("Team"),
-    col("impact_score").alias("Impact_Score")
+    col("player_impact").alias("Impact_Score")
 ).writeStream \
     .outputMode("complete") \
     .format("console") \
