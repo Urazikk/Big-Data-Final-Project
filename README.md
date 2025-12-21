@@ -124,6 +124,11 @@ On Mac/Linux:
 On Windows:
  ```.\venv\Scripts\Activate```
 
+Windows Only: Set mandatory environment variables to handle Python paths and Unicode encoding (to avoid emoji/encoding crashes):
+
+```$env:PYTHONIOENCODING="utf-8" ```
+```$env:PYSPARK_PYTHON="[YOUR PATH TO THE FILE]\Big-Data-Final-Project-main\venv\Scripts\python.exe" ```
+
 Run:
 ```cd spark-processor```
 
